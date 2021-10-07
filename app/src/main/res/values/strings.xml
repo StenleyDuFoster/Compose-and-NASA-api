@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">NasaCompose</string>
+
+    <string name="photo_of_the_day">Photo of the day</string>
+</resources>
