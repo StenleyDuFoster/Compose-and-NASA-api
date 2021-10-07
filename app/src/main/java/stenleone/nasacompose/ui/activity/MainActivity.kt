@@ -8,6 +8,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.ExperimentalUnitApi
 import dagger.hilt.android.AndroidEntryPoint
 import stenleone.nasacompose.ui.screens.PictureOfTheDayScreen.PictureOfTheDayScreen
 import stenleone.nasacompose.ui.theme.NasaComposeTheme
@@ -15,6 +16,7 @@ import stenleone.nasacompose.ui.theme.NasaComposeTheme
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
+    @ExperimentalUnitApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
