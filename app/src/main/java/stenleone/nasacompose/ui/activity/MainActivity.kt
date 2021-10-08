@@ -33,16 +33,16 @@ class MainActivity : ComponentActivity() {
 
         setContent {
 
-            var currentPage = remember { mutableStateOf(PICTURE_OF_THE_DAY_PAGE) }
+            val currentPage = remember { mutableStateOf(PICTURE_OF_THE_DAY_PAGE) }
 
             Scaffold(
                 bottomBar = {
-                    createBottomNavigation(currentPage.value) {
+                    CreateBottomNavigation(currentPage.value) {
                         currentPage.value = it
                     }
                 }
             ) {
-                createPager(currentPage.value)
+                CreatePager(currentPage.value)
             }
         }
     }
@@ -51,17 +51,17 @@ class MainActivity : ComponentActivity() {
     @ExperimentalUnitApi
     @ExperimentalPagerApi
     @Composable
-    private fun createPager(currentPage: Int) {
+    private fun CreatePager(currentPage: Int) {
         HorizontalPager(
             dragEnabled = false,
             state = PagerState(
                 pageCount = 4,
                 currentPage = currentPage
             ),
-        ) { index ->
+        ) {
             when (this.currentPage) {
                 PICTURE_OF_THE_DAY_PAGE -> {
-                    PictureOfTheDayScreen(this@MainActivity).view(selectedPageInPictureOfTheDay) {
+                    PictureOfTheDayScreen(this@MainActivity).View(selectedPageInPictureOfTheDay) {
                         selectedPageInPictureOfTheDay = it
                     }
                 }
@@ -75,7 +75,7 @@ class MainActivity : ComponentActivity() {
     @ExperimentalUnitApi
     @ExperimentalPagerApi
     @Composable
-    private fun createBottomNavigation(currentPage: Int, selectedPage: (Int) -> Unit) {
+    private fun CreateBottomNavigation(currentPage: Int, selectedPage: (Int) -> Unit) {
         BottomNavigation {
             BottomNavigationItem(
                 onClick = {

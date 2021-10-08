@@ -13,17 +13,17 @@ class PictureOfTheDayRepository @Inject constructor(
     ) {
 
     suspend fun getPictureOfTheDay(startDate: String, endDate: String): DataState<ArrayList<PictureOfTheDayData>> {
-        try {
+        return try {
             val resp = apiService.getPictureOfTheDay(startDate, endDate)
             val body = resp.body()
 
             if (resp.isSuccessful && body != null) {
-                return DataState.Success(pictureOfTheDayMapper.mapFromEntity(body))
+                DataState.Success(ArrayList(body.map { pictureOfTheDayMapper.mapFromEntity(it) }))
             } else {
-                return DataState.Error(RequestError(resp.errorBody()?.string() ?: resp.message(), resp.code()))
+                DataState.Error(RequestError(resp.errorBody()?.string() ?: resp.message(), resp.code()))
             }
         } catch (e: Exception) {
-            return DataState.Error(RequestError(e.message, -1))
+            DataState.Error(RequestError(e.message, -1))
         }
     }
 

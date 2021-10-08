@@ -32,7 +32,7 @@ class PictureOfTheDayScreen(private val context: Context) {
     @ExperimentalPagerApi
     @ExperimentalUnitApi
     @Composable
-    fun view(previousSelectedPage: Int, viewModel: PictureOfTheDayViewModel = hiltViewModel(), selectedPageCallBack: (Int) -> Unit) {
+    fun View(previousSelectedPage: Int, viewModel: PictureOfTheDayViewModel = hiltViewModel(), selectedPageCallBack: (Int) -> Unit) {
         val pictureOfTheDayDataState = viewModel.pictureOfTheDayState.observeAsState()
         val dataState = viewModel.pictureData.observeAsState()
         var loadingState: UiState.Loading? = null
@@ -59,17 +59,13 @@ class PictureOfTheDayScreen(private val context: Context) {
             ) {
 
                 Box(contentAlignment = Alignment.Center) {
-                    createPager(currentPage, dataState.value ?: arrayListOf(), viewModel) {
+                    CreatePager(currentPage, dataState.value ?: arrayListOf(), viewModel) {
                         currentPage.value = it
                         selectedPageCallBack(it)
                     }
 
                     errorState?.let {
-                        createErrorView(it.exception, viewModel)
-                    }
-
-                    if (loadingState != null) {
-                        CircularProgressIndicator()
+                        CreateErrorView(it.exception, viewModel)
                     }
                 }
             }
@@ -79,7 +75,7 @@ class PictureOfTheDayScreen(private val context: Context) {
     @ExperimentalUnitApi
     @ExperimentalPagerApi
     @Composable
-    private fun createPager(
+    private fun CreatePager(
         currentPage: State<Int>,
         listData: ArrayList<PictureOfTheDayData>,
         viewModel: PictureOfTheDayViewModel,
@@ -98,15 +94,15 @@ class PictureOfTheDayScreen(private val context: Context) {
 
             startPagination(currentPage.value, listData.size, viewModel)
 
-            PictureOfTheDayPage(context, data).view()
+            PictureOfTheDayPage(context, data).View()
         }
     }
 
     @ExperimentalMaterialApi
     @Composable
-    private fun createErrorView(error: UiError, viewModel: PictureOfTheDayViewModel) {
+    private fun CreateErrorView(error: UiError, viewModel: PictureOfTheDayViewModel) {
         Card(Modifier.padding(10.dp), elevation = 10.dp, shape = RoundedCornerShape(20.dp)) {
-            Column() {
+            Column {
                 Text(
                     text = error.message,
                     Modifier
