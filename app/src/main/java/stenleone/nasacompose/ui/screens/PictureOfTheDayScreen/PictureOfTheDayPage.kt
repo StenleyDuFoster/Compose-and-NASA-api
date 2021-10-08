@@ -26,6 +26,8 @@ import com.skydoves.landscapist.CircularReveal
 import com.skydoves.landscapist.glide.GlideImage
 import stenleone.nasacompose.R
 import stenleone.nasacompose.model.ui.PictureOfTheDayData
+import stenleone.nasacompose.ui.theme.MediumTextStyle
+import stenleone.nasacompose.ui.theme.TitleTextStyle
 import stenleone.nasacompose.ui.theme.yaldeviFont
 import kotlin.math.roundToInt
 
@@ -72,10 +74,9 @@ class PictureOfTheDayPage(private val context: Context, private val dataState: P
                     circularReveal = CircularReveal(duration = 250),
                 )
                 Text(
-                    text = dataState?.title ?: "", modifier = Modifier.padding(5.dp), fontWeight = FontWeight.Bold,
-                    fontSize = TextUnit(23f, type = TextUnitType.Sp), fontFamily = yaldeviFont
+                    text = dataState?.title ?: "", modifier = Modifier.padding(5.dp), style = TitleTextStyle
                 )
-                Text(text = dataState?.explanation ?: "", fontFamily = yaldeviFont, modifier = Modifier.padding(start = 5.dp, end = 5.dp, top = 0.dp, bottom = 5.dp))
+                Text(text = dataState?.explanation ?: "", style = MediumTextStyle, modifier = Modifier.padding(start = 5.dp, end = 5.dp, top = 0.dp, bottom = 5.dp))
                 Box(modifier = Modifier.padding(bottom = toolbarHeight))
             }
             TopAppBar(

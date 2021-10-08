@@ -23,6 +23,7 @@ import stenleone.nasacompose.R
 import stenleone.nasacompose.model.ui.PictureOfTheDayData
 import stenleone.nasacompose.ui.common.UiError
 import stenleone.nasacompose.ui.common.UiState
+import stenleone.nasacompose.ui.theme.MediumTextStyle
 import stenleone.nasacompose.ui.theme.NasaComposeTheme
 import stenleone.nasacompose.ui.theme.Purple500
 
@@ -32,12 +33,12 @@ class PictureOfTheDayScreen(private val context: Context) {
     @ExperimentalPagerApi
     @ExperimentalUnitApi
     @Composable
-    fun View(previousSelectedPage: Int, viewModel: PictureOfTheDayViewModel = hiltViewModel(), selectedPageCallBack: (Int) -> Unit) {
+    fun View(viewModel: PictureOfTheDayViewModel = hiltViewModel()) {
         val pictureOfTheDayDataState = viewModel.pictureOfTheDayState.observeAsState()
         val dataState = viewModel.pictureData.observeAsState()
         var loadingState: UiState.Loading? = null
         var errorState: UiState.Error? = null
-        val currentPage = remember { mutableStateOf(previousSelectedPage) }
+        val currentPage = remember { mutableStateOf(0) }
 
         pictureOfTheDayDataState.value?.also {
             when (it) {
@@ -61,7 +62,6 @@ class PictureOfTheDayScreen(private val context: Context) {
                 Box(contentAlignment = Alignment.Center) {
                     CreatePager(currentPage, dataState.value ?: arrayListOf(), viewModel) {
                         currentPage.value = it
-                        selectedPageCallBack(it)
                     }
 
                     errorState?.let {
@@ -98,6 +98,7 @@ class PictureOfTheDayScreen(private val context: Context) {
         }
     }
 
+    @ExperimentalUnitApi
     @ExperimentalMaterialApi
     @Composable
     private fun CreateErrorView(error: UiError, viewModel: PictureOfTheDayViewModel) {
@@ -116,7 +117,8 @@ class PictureOfTheDayScreen(private val context: Context) {
                         text = context.getString(R.string.retry),
                         Modifier
                             .padding(10.dp)
-                            .fillMaxWidth(), textAlign = TextAlign.Center
+                            .fillMaxWidth(), textAlign = TextAlign.Center,
+                        style = MediumTextStyle,
                     )
                 }
             }
