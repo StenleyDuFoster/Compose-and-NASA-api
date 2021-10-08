@@ -70,6 +70,10 @@ class PictureOfTheDayViewModel @Inject constructor(
         }
     }
 
+    fun setupNewDate() {
+
+    }
+
     @SuppressLint("SimpleDateFormat")
     private fun getNowDate(): String {
         return try {

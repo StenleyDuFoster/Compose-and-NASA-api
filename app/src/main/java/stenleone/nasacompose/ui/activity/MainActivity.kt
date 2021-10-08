@@ -4,8 +4,15 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.ScrollableDefaults
+import androidx.compose.foundation.gestures.ScrollableState
+import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
@@ -15,6 +22,9 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.PagerState
 import com.google.accompanist.pager.rememberPagerState
+import com.vanpra.composematerialdialogs.MaterialDialog
+import com.vanpra.composematerialdialogs.datetime.date.datepicker
+import com.vanpra.composematerialdialogs.rememberMaterialDialogState
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import stenleone.nasacompose.R
@@ -26,8 +36,8 @@ import stenleone.nasacompose.ui.theme.MediumTextStyle
 class MainActivity : ComponentActivity() {
 
     companion object {
-        private const val PICTURE_OF_THE_DAY_PAGE = 1
-        private const val OTHER = 2
+        private const val PICTURE_OF_THE_DAY_PAGE = 0
+        private const val OTHER = 1
     }
 
     @ExperimentalAnimationApi
@@ -39,11 +49,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
 
-            val pagerState = rememberPagerState(
-                pageCount = 4,
-                initialPage = PICTURE_OF_THE_DAY_PAGE,
-                initialOffscreenLimit = 2
-            )
+            val pagerState = rememberPagerState(initialPage = PICTURE_OF_THE_DAY_PAGE)
 
             val animatedScope = rememberCoroutineScope()
 
@@ -58,6 +64,7 @@ class MainActivity : ComponentActivity() {
             ) {
                 CreatePager(pagerState)
             }
+
         }
     }
 
@@ -68,8 +75,9 @@ class MainActivity : ComponentActivity() {
     @Composable
     private fun CreatePager(pagerState: PagerState) {
         HorizontalPager(
-            dragEnabled = false,
             state = pagerState,
+            count = 2,
+            modifier = Modifier
         ) { index ->
 
             when (index) {

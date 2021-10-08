@@ -1,6 +1,7 @@
 package stenleone.nasacompose.ui.screens.PictureOfTheDayScreen
 
 import android.content.Context
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -29,6 +30,7 @@ import stenleone.nasacompose.ui.theme.Purple500
 
 class PictureOfTheDayScreen(private val context: Context) {
 
+    @ExperimentalAnimationApi
     @ExperimentalMaterialApi
     @ExperimentalPagerApi
     @ExperimentalUnitApi
@@ -60,7 +62,7 @@ class PictureOfTheDayScreen(private val context: Context) {
             ) {
 
                 Box(contentAlignment = Alignment.Center) {
-                    CreatePager(currentPage, dataState.value ?: arrayListOf(), viewModel) {
+                    CreatePager(currentPage, dataState.value ?: arrayListOf(), viewModel, errorState == null) {
                         currentPage.value = it
                     }
 
@@ -72,6 +74,7 @@ class PictureOfTheDayScreen(private val context: Context) {
         }
     }
 
+    @ExperimentalAnimationApi
     @ExperimentalUnitApi
     @ExperimentalPagerApi
     @Composable
@@ -79,22 +82,26 @@ class PictureOfTheDayScreen(private val context: Context) {
         currentPage: State<Int>,
         listData: ArrayList<PictureOfTheDayData>,
         viewModel: PictureOfTheDayViewModel,
-        currentPageCallBack: (Int) -> Unit
+        canPagination: Boolean,
+        currentPageCallBack: (Int) -> Unit,
     ) {
 
         HorizontalPager(
             state = PagerState(
-                pageCount = listData.size,
                 currentPage = if (currentPage.value > listData.size) listData.size else currentPage.value
             ),
-            Modifier.fillMaxSize()
+            count = listData.size
         ) { index ->
             currentPageCallBack(this.currentPage)
             val data: PictureOfTheDayData? = listData.getOrNull(index)
 
-            startPagination(currentPage.value, listData.size, viewModel)
+            if (canPagination) {
+                startPagination(currentPage.value, listData.size, viewModel)
+            }
 
-            PictureOfTheDayPage(context, data).View()
+            PictureOfTheDayPage(context, data, { date ->
+
+            }).View()
         }
     }
 
@@ -117,7 +124,8 @@ class PictureOfTheDayScreen(private val context: Context) {
                         text = context.getString(R.string.retry),
                         Modifier
                             .padding(10.dp)
-                            .fillMaxWidth(), textAlign = TextAlign.Center,
+                            .fillMaxWidth(),
+                        textAlign = TextAlign.Center,
                         style = MediumTextStyle,
                     )
                 }

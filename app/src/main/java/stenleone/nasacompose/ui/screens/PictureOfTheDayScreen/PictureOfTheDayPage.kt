@@ -1,6 +1,8 @@
 package stenleone.nasacompose.ui.screens.PictureOfTheDayScreen
 
 import android.content.Context
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
@@ -24,15 +26,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import com.skydoves.landscapist.CircularReveal
 import com.skydoves.landscapist.glide.GlideImage
+import com.vanpra.composematerialdialogs.MaterialDialog
+import com.vanpra.composematerialdialogs.datetime.date.datepicker
+import com.vanpra.composematerialdialogs.rememberMaterialDialogState
 import stenleone.nasacompose.R
 import stenleone.nasacompose.model.ui.PictureOfTheDayData
 import stenleone.nasacompose.ui.theme.MediumTextStyle
 import stenleone.nasacompose.ui.theme.TitleTextStyle
 import stenleone.nasacompose.ui.theme.yaldeviFont
+import java.time.LocalDate
 import kotlin.math.roundToInt
 
-class PictureOfTheDayPage(private val context: Context, private val dataState: PictureOfTheDayData? = null) {
+class PictureOfTheDayPage(private val context: Context, private val dataState: PictureOfTheDayData? = null, private val changeDateCallBack: (LocalDate) -> Unit) {
 
+    @ExperimentalAnimationApi
     @ExperimentalUnitApi
     @Composable
     fun View() {
@@ -51,6 +58,22 @@ class PictureOfTheDayPage(private val context: Context, private val dataState: P
                 }
             }
         }
+
+        val dialogState = rememberMaterialDialogState()
+        MaterialDialog(
+            dialogState = dialogState,
+            buttons = {
+                positiveButton("Ok")
+                negativeButton("Cancel")
+            }
+        ) {
+
+            datepicker { date ->
+                changeDateCallBack(date)
+                dialogState.hide()
+            }
+        }
+
         Box(
             Modifier
                 .fillMaxSize()
@@ -84,11 +107,14 @@ class PictureOfTheDayPage(private val context: Context, private val dataState: P
                     .height(toolbarHeight)
                     .offset { IntOffset(x = 0, y = toolbarOffsetHeightPx.value.roundToInt()) },
                 title = {
-                    Text("${context.getString(R.string.photo_of_the_day)} ${dataState?.date ?: ""}")
+                    Text("${context.getString(R.string.photo_of_the_day)} ")
+                    AnimatedVisibility(dataState?.date != null) {
+                        Text("${dataState?.date ?: ""}")
+                    }
 
                     Image(painterResource(R.drawable.ic_pen), contentDescription = "", modifier = Modifier
                         .clickable {
-//                        Toast.makeText(context, "ff", Toast.LENGTH_LONG)
+                            dialogState.show()
                         }
                         .padding(5.dp))
                 }
@@ -100,4 +126,5 @@ class PictureOfTheDayPage(private val context: Context, private val dataState: P
             }
         }
     }
+
 }
