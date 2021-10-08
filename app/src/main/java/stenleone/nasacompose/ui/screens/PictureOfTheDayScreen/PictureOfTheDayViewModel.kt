@@ -49,7 +49,7 @@ class PictureOfTheDayViewModel @Inject constructor(
                     if (getNowDate() != startDate) {
                         lastDate = startDate
                     }
-                    pictureOfTheDayState.postValue(UiState.Error(UiError(dataState.exception.toString(), 0)))
+                    pictureOfTheDayState.postValue(UiState.Error(UiError(dataState.exception.message ?: "Something went wrong", 0)))
                 }
             }
         }
@@ -58,6 +58,8 @@ class PictureOfTheDayViewModel @Inject constructor(
     fun getNextImage() {
         if (lastDate != "" && !inProgress) {
             getImage(decreaseDate(lastDate, 5), decreaseDate(lastDate, 1))
+        } else if (lastDate != "") {
+            getImage()
         }
     }
 

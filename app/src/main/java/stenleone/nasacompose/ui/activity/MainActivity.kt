@@ -3,10 +3,7 @@ package stenleone.nasacompose.ui.activity
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material.BottomNavigation
-import androidx.compose.material.BottomNavigationItem
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,6 +25,7 @@ class MainActivity : ComponentActivity() {
 
     private var selectedPageInPictureOfTheDay: Int = 0
 
+    @ExperimentalMaterialApi
     @ExperimentalPagerApi
     @ExperimentalUnitApi
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,6 +47,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @ExperimentalMaterialApi
     @ExperimentalUnitApi
     @ExperimentalPagerApi
     @Composable

@@ -75,7 +75,7 @@ class PictureOfTheDayPage(private val context: Context, private val dataState: P
                     fontSize = TextUnit(23f, type = TextUnitType.Sp), fontFamily = yaldeviFont
                 )
                 Text(text = dataState?.explanation ?: "", fontFamily = yaldeviFont, modifier = Modifier.padding(start = 5.dp, end = 5.dp, top = 0.dp, bottom = 5.dp))
-
+                Box(modifier = Modifier.padding(bottom = toolbarHeight))
             }
             TopAppBar(
                 modifier = Modifier
