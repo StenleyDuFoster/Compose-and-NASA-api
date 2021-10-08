@@ -52,5 +52,7 @@ dependencies {
 
     implementation "com.google.accompanist:accompanist-pager:0.12.0"
 
+    implementation "androidx.navigation:navigation-compose:$compose_version"
+
 
 }

@@ -2,4 +2,9 @@
     <string name="app_name">NasaCompose</string>
 
     <string name="photo_of_the_day">Photo of the day</string>
+    <string name="video_of_the_day">Video of the day</string>
+
+    <string name="picture_of_the_day">Picture of the day</string>
+    <string name="settings">Settings</string>
+
 </resources>

@@ -25,14 +25,12 @@ class PictureOfTheDayScreen(private val context: Context) {
     @ExperimentalPagerApi
     @ExperimentalUnitApi
     @Composable
-    fun view(viewModel: PictureOfTheDayViewModel = hiltViewModel()) {
+    fun view(previousSelectedPage: Int, viewModel: PictureOfTheDayViewModel = hiltViewModel(), selectedPageCallBack: (Int) -> Unit) {
         val pictureOfTheDayDataState = viewModel.pictureOfTheDayState.observeAsState()
         val dataState = viewModel.pictureData.observeAsState()
         var loadingState: UiState.Loading? = null
         var errorState: UiState.Error? = null
-        val currentPage = remember {
-            mutableStateOf(0)
-        }
+        val currentPage = remember { mutableStateOf(previousSelectedPage) }
 
         pictureOfTheDayDataState.value?.also {
             when (it) {
@@ -51,6 +49,7 @@ class PictureOfTheDayScreen(private val context: Context) {
 
                 createPager(currentPage, dataState.value ?: arrayListOf(), viewModel) {
                     currentPage.value = it
+                    selectedPageCallBack(it)
                 }
             }
         }
