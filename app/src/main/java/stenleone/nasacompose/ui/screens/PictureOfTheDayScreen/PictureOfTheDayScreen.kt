@@ -1,96 +1,88 @@
 package stenleone.nasacompose.ui.screens.PictureOfTheDayScreen
 
 import android.content.Context
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.*
-import com.skydoves.landscapist.CircularReveal
-import com.skydoves.landscapist.glide.GlideImage
-import stenleone.nasacompose.R
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.ExperimentalUnitApi
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.accompanist.pager.ExperimentalPagerApi
+import com.google.accompanist.pager.HorizontalPager
+import com.google.accompanist.pager.PagerState
 import stenleone.nasacompose.model.ui.PictureOfTheDayData
-import stenleone.nasacompose.ui.theme.yaldeviFont
-import kotlin.math.roundToInt
+import stenleone.nasacompose.ui.common.UiState
+import stenleone.nasacompose.ui.theme.NasaComposeTheme
 
-class PictureOfTheDayScreen(private val context: Context, private val dataState: PictureOfTheDayData? = null) {
+class PictureOfTheDayScreen(private val context: Context) {
 
+    @ExperimentalPagerApi
     @ExperimentalUnitApi
     @Composable
-    fun view() {
+    fun view(viewModel: PictureOfTheDayViewModel = hiltViewModel()) {
+        val pictureOfTheDayDataState = viewModel.pictureOfTheDayState.observeAsState()
+        val dataState = viewModel.pictureData.observeAsState()
+        var loadingState: UiState.Loading? = null
+        var errorState: UiState.Error? = null
+        val currentPage = remember {
+            mutableStateOf(0)
+        }
 
-        val toolbarHeight = 48.dp
-        val toolbarHeightPx = with(LocalDensity.current) { toolbarHeight.roundToPx().toFloat() }
-        val toolbarOffsetHeightPx = remember { mutableStateOf(0f) }
+        pictureOfTheDayDataState.value?.also {
+            when (it) {
+                is UiState.Loading -> {
+                    loadingState = it
+                }
+                is UiState.Error -> {
+                    errorState = it
+                }
+                else -> Unit
+            }
+        }
 
-        val nestedScrollConnection = remember {
-            object : NestedScrollConnection {
-                override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                    val delta = available.y
-                    val newOffset = toolbarOffsetHeightPx.value + delta
-                    toolbarOffsetHeightPx.value = newOffset.coerceIn(-toolbarHeightPx, 0f)
-                    return Offset.Zero
+        NasaComposeTheme {
+            Surface(color = MaterialTheme.colors.background, contentColor = Color.Black, modifier = Modifier.fillMaxSize()) {
+
+                createPager(currentPage, dataState.value ?: arrayListOf(), viewModel) {
+                    currentPage.value = it
                 }
             }
         }
-        Box(
-            Modifier
-                .fillMaxSize()
-                .nestedScroll(nestedScrollConnection)
-        ) {
-            Column(
-                Modifier
-                    .verticalScroll(enabled = true, state = ScrollState(0))
-                    .fillMaxSize()
-                    .offset {
-                        IntOffset(
-                            x = 0,
-                            y = toolbarHeight
-                                .toPx()
-                                .toInt() + toolbarOffsetHeightPx.value.roundToInt()
-                        )
-                    },
-            ) {
-                GlideImage(
-                    imageModel = dataState?.url ?: "", Modifier.fillMaxWidth(),
-                    circularReveal = CircularReveal(duration = 250),
-                )
-                Text(
-                    text = dataState?.title ?: "", modifier = Modifier.padding(5.dp), fontWeight = FontWeight.Bold,
-                    fontSize = TextUnit(23f, type = TextUnitType.Sp), fontFamily = yaldeviFont
-                )
-                Text(text = dataState?.explanation ?: "", fontFamily = yaldeviFont, modifier = Modifier.padding(start = 5.dp, end = 5.dp, top = 0.dp, bottom = 5.dp))
+    }
 
-            }
-            TopAppBar(
-                modifier = Modifier
-                    .height(toolbarHeight)
-                    .offset { IntOffset(x = 0, y = toolbarOffsetHeightPx.value.roundToInt()) },
-                title = {
-                    Text("${context.getString(R.string.photo_of_the_day)} ${dataState?.date ?: ""}")
+    @ExperimentalUnitApi
+    @ExperimentalPagerApi
+    @Composable
+    private fun createPager(
+        currentPage: State<Int>,
+        listData: ArrayList<PictureOfTheDayData>,
+        viewModel: PictureOfTheDayViewModel,
+        currentPageCallBack: (Int) -> Unit) {
 
-                    Image(painterResource(R.drawable.ic_pen), contentDescription = "", modifier = Modifier
-                        .clickable {
-//                        Toast.makeText(context, "ff", Toast.LENGTH_LONG)
-                        }
-                        .padding(5.dp))
-                }
-            )
+        HorizontalPager(
+            state = PagerState(
+                pageCount = listData.size,
+                currentPage = if (currentPage.value > listData.size) listData.size else currentPage.value
+            ),
+        ) { index ->
+            currentPageCallBack(this.currentPage)
+            val data: PictureOfTheDayData? = listData.getOrNull(index)
+
+            startPagination(currentPage.value, listData.size, viewModel)
+
+            PictureOfTheDayPage(context, data).view()
+        }
+    }
+
+    private fun startPagination(currentPage: Int, listSize: Int, viewModel: PictureOfTheDayViewModel) {
+        if (currentPage > listSize / 2) {
+            viewModel.getNextImage()
         }
     }
 }

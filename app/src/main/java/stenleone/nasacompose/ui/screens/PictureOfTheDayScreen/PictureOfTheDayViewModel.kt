@@ -20,12 +20,14 @@ class PictureOfTheDayViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val listData: ArrayList<PictureOfTheDayData> = arrayListOf()
-    val pictureOfTheDayState = MutableLiveData<UiState<ArrayList<PictureOfTheDayData>>>()
+
+    val pictureData = MutableLiveData<ArrayList<PictureOfTheDayData>>(arrayListOf())
+    val pictureOfTheDayState = MutableLiveData<UiState<Boolean>>()
     private var inProgress = false
     var lastDate: String = ""
 
     init {
-        getImage(decreseDate(getNowDate(), 5), getNowDate())
+        getImage(decreaseDate(getNowDate(), 5), getNowDate())
     }
 
     fun getImage(startDate: String = "2021-05-05", endDate: String = getNowDate()) {
@@ -38,7 +40,8 @@ class PictureOfTheDayViewModel @Inject constructor(
                 is DataState.Success -> {
                     inProgress = false
                     listData.addAll(dataState.data.also { it.reverse() })
-                    pictureOfTheDayState.postValue(UiState.Success(listData))
+                    pictureData.postValue(listData)
+                    pictureOfTheDayState.postValue(UiState.Success(true))
                     lastDate = startDate
                 }
                 is DataState.Error -> {
@@ -54,7 +57,7 @@ class PictureOfTheDayViewModel @Inject constructor(
 
     fun getNextImage() {
         if (lastDate != "" && !inProgress) {
-            getImage(decreseDate(lastDate, 5), lastDate)
+            getImage(decreaseDate(lastDate, 5), decreaseDate(lastDate, 1))
         }
     }
 
@@ -66,7 +69,7 @@ class PictureOfTheDayViewModel @Inject constructor(
         }
     }
 
-    private fun decreseDate(date: String, minusDays: Int = 0): String {
+    private fun decreaseDate(date: String, minusDays: Int = 0): String {
         try {
             val calendarDate = Calendar.getInstance().also {
                 it.time = SimpleDateFormat("yyyy-MM-dd").parse(date)
