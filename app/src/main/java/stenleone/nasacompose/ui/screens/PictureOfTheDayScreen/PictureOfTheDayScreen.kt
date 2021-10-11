@@ -1,12 +1,13 @@
 package stenleone.nasacompose.ui.screens.PictureOfTheDayScreen
 
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,7 +63,7 @@ class PictureOfTheDayScreen(private val context: Context) {
             ) {
 
                 Box(contentAlignment = Alignment.Center) {
-                    CreatePager(currentPage, dataState.value ?: arrayListOf(), viewModel, errorState == null) {
+                    CreatePager(currentPage.value, (dataState.value ?: arrayListOf()), viewModel, errorState == null) {
                         currentPage.value = it
                     }
 
@@ -74,13 +75,14 @@ class PictureOfTheDayScreen(private val context: Context) {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     @ExperimentalAnimationApi
     @ExperimentalUnitApi
     @ExperimentalPagerApi
     @Composable
     private fun CreatePager(
-        currentPage: State<Int>,
-        listData: ArrayList<PictureOfTheDayData>,
+        currentPage: Int,
+        listData: List<PictureOfTheDayData?>,
         viewModel: PictureOfTheDayViewModel,
         canPagination: Boolean,
         currentPageCallBack: (Int) -> Unit,
@@ -88,7 +90,7 @@ class PictureOfTheDayScreen(private val context: Context) {
 
         HorizontalPager(
             state = PagerState(
-                currentPage = if (currentPage.value > listData.size) listData.size else currentPage.value
+                currentPage = if (currentPage > listData.size) listData.size else currentPage
             ),
             count = listData.size
         ) { index ->
@@ -96,11 +98,11 @@ class PictureOfTheDayScreen(private val context: Context) {
             val data: PictureOfTheDayData? = listData.getOrNull(index)
 
             if (canPagination) {
-                startPagination(currentPage.value, listData.size, viewModel)
+                startPagination(currentPage, listData.size, viewModel)
             }
 
             PictureOfTheDayPage(context, data, { date ->
-
+                viewModel.setupNewDate(date)
             }).View()
         }
     }
@@ -136,8 +138,10 @@ class PictureOfTheDayScreen(private val context: Context) {
     }
 
     private fun startPagination(currentPage: Int, listSize: Int, viewModel: PictureOfTheDayViewModel) {
-        if (currentPage > listSize / 2) {
+        if (currentPage > listSize - PictureOfTheDayViewModel.PAGINATE_PAGE_SIZE) {
             viewModel.getNextImage()
-        }
+        } /*else if (currentPage < PictureOfTheDayViewModel.PAGINATE_PAGE_SIZE && listSize > 0) {
+            viewModel.getPreviousImage()
+        }*/
     }
 }

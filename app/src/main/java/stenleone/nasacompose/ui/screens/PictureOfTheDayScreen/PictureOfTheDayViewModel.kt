@@ -23,38 +23,50 @@ class PictureOfTheDayViewModel @Inject constructor(
     companion object {
         const val DATE_PATTERN = "yyyy-MM-dd"
         const val DEFAULT_DATE = "2021-05-05"
+        const val PAGINATE_PAGE_SIZE = 5
     }
 
-    private val listData: ArrayList<PictureOfTheDayData> = arrayListOf()
+    private val listData: ArrayList<PictureOfTheDayData?> = arrayListOf()
+    val listPositionCompensation = MutableLiveData(PAGINATE_PAGE_SIZE)
 
-    val pictureData = MutableLiveData<ArrayList<PictureOfTheDayData>>(arrayListOf())
+    val pictureData = MutableLiveData<ArrayList<PictureOfTheDayData?>>(arrayListOf())
     val pictureOfTheDayState = MutableLiveData<UiState<Boolean>>()
     private var inProgress = false
     private var lastDate: String = ""
+    private var firstDate: String = ""
 
     init {
-        getImage(decreaseDate(getNowDate(), 5), getNowDate())
+        getImage(decreaseDate(getDateWithCorrectFormat(), PAGINATE_PAGE_SIZE * 2), getDateWithCorrectFormat()) //  multiply by 2 because we need first load left and right pages
     }
 
-    private fun getImage(startDate: String = DEFAULT_DATE, endDate: String = getNowDate()) {
-        inProgress = true
-        viewModelScope.launch {
-            pictureOfTheDayState.postValue(UiState.Loading(0))
+    private fun getImage(endDate: String = DEFAULT_DATE, startDate: String = getDateWithCorrectFormat(), addToStartList: Boolean = false) {
+        if (checkIfDateStringGreater(startDate, getDateWithCorrectFormat())) {
+            pictureData.postValue(createEmptyLoadList(addToStartList))
+            inProgress = true
+            viewModelScope.launch {
+                pictureOfTheDayState.postValue(UiState.Loading(0))
 
-            when (val dataState = pictureOfTheDayRepository.getPictureOfTheDay(startDate, endDate)) {
-                is DataState.Success -> {
-                    inProgress = false
-                    listData.addAll(dataState.data.also { it.reverse() })
-                    pictureData.postValue(listData)
-                    pictureOfTheDayState.postValue(UiState.Success())
-                    lastDate = startDate
-                }
-                is DataState.Error -> {
-                    inProgress = false
-                    if (getNowDate() != startDate) {
-                        lastDate = startDate
+                when (val dataState = pictureOfTheDayRepository.getPictureOfTheDay(endDate, startDate)) {
+                    is DataState.Success -> {
+                        inProgress = false
+                        removeEmptyLoadList(addToStartList)
+
+                        listData.addAll(if (addToStartList) 0 else listData.size, dataState.data.also { it.reverse() })
+                        if (addToStartList) {
+                            listPositionCompensation.postValue(listPositionCompensation.value ?: 0 + PAGINATE_PAGE_SIZE)
+                        }
+                        pictureData.postValue(listData)
+                        pictureOfTheDayState.postValue(UiState.Success())
+                        lastDate = endDate
                     }
-                    pictureOfTheDayState.postValue(UiState.Error(UiError(dataState.exception.message ?: "Something went wrong", 0)))
+                    is DataState.Error -> {
+                        inProgress = false
+                        if (getDateWithCorrectFormat() != endDate) {
+                            lastDate = endDate
+                        }
+                        pictureData.postValue(removeEmptyLoadList(addToStartList))
+                        pictureOfTheDayState.postValue(UiState.Error(UiError(dataState.exception.message ?: "Something went wrong", 0)))
+                    }
                 }
             }
         }
@@ -63,32 +75,89 @@ class PictureOfTheDayViewModel @Inject constructor(
     fun getNextImage() {
         if (!inProgress) {
             if (lastDate != "") {
-                getImage(decreaseDate(lastDate, 5), decreaseDate(lastDate, 1))
+                getImage(decreaseDate(lastDate), decreaseDate(lastDate, 1))
             } else {
                 getImage()
             }
         }
     }
 
-    fun setupNewDate() {
+    fun getPreviousImage() {
+        if (!inProgress) {
+            if (lastDate != "") {
+                getImage(increaseDate(lastDate, 1), increaseDate(lastDate), true)
+            } else {
+                getImage(addToStartList = true)
+            }
+        }
+    }
+
+    fun setupNewDate(newDate: Date) {
+        listData.clear()
+
+        getDateWithCorrectFormat(newDate).also {
+            getImage(decreaseDate(it), it)
+        }
 
     }
 
-    @SuppressLint("SimpleDateFormat")
-    private fun getNowDate(): String {
+    private fun createEmptyLoadList(addToStartList: Boolean = false): ArrayList<PictureOfTheDayData?> {
+        listData.apply {
+            repeat(PAGINATE_PAGE_SIZE) {
+                add(if (addToStartList) 0 else this.size, null)
+            }
+            return this
+        }
+    }
+
+    private fun removeEmptyLoadList(addToStartList: Boolean = false): ArrayList<PictureOfTheDayData?> {
+        listData.apply {
+            repeat(PAGINATE_PAGE_SIZE) {
+                remove(null)
+            }
+            return this
+        }
+    }
+
+    private fun checkIfDateStringGreater(firstDate: String, secondDate: String): Boolean {
         return try {
-            SimpleDateFormat(DATE_PATTERN).format(Calendar.getInstance().time)
+            val first = SimpleDateFormat(DATE_PATTERN).parse(firstDate)
+            val second = SimpleDateFormat(DATE_PATTERN).parse(secondDate)
+
+            return first.before(second) || first == second
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    @SuppressLint("SimpleDateFormat")
+    private fun getDateWithCorrectFormat(date: Date? = null): String {
+        return try {
+            SimpleDateFormat(DATE_PATTERN).format(date?.time ?: Calendar.getInstance().time)
         } catch (e: Exception) {
             DEFAULT_DATE
         }
     }
 
     @SuppressLint("SimpleDateFormat")
-    private fun decreaseDate(date: String, minusDays: Int = 0): String {
+    private fun decreaseDate(date: String, minusDays: Int = PAGINATE_PAGE_SIZE): String {
         return try {
             val calendarDate = Calendar.getInstance().also {
                 it.time = SimpleDateFormat(DATE_PATTERN).parse(date) ?: Calendar.getInstance().time
                 it.add(Calendar.DAY_OF_YEAR, -minusDays)
+            }
+            SimpleDateFormat(DATE_PATTERN).format(calendarDate.time)
+        } catch (e: Exception) {
+            date
+        }
+    }
+
+    @SuppressLint("SimpleDateFormat")
+    private fun increaseDate(date: String, plusDays: Int = PAGINATE_PAGE_SIZE): String {
+        return try {
+            val calendarDate = Calendar.getInstance().also {
+                it.time = SimpleDateFormat(DATE_PATTERN).parse(date) ?: Calendar.getInstance().time
+                it.add(Calendar.DAY_OF_YEAR, plusDays)
             }
             SimpleDateFormat(DATE_PATTERN).format(calendarDate.time)
         } catch (e: Exception) {

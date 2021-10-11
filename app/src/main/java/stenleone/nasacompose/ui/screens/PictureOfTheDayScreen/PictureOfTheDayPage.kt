@@ -1,6 +1,8 @@
 package stenleone.nasacompose.ui.screens.PictureOfTheDayScreen
 
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
@@ -35,10 +37,14 @@ import stenleone.nasacompose.ui.theme.MediumTextStyle
 import stenleone.nasacompose.ui.theme.TitleTextStyle
 import stenleone.nasacompose.ui.theme.yaldeviFont
 import java.time.LocalDate
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.util.*
 import kotlin.math.roundToInt
 
-class PictureOfTheDayPage(private val context: Context, private val dataState: PictureOfTheDayData? = null, private val changeDateCallBack: (LocalDate) -> Unit) {
+class PictureOfTheDayPage(private val context: Context, private val dataState: PictureOfTheDayData? = null, private val changeDateCallBack: (Date) -> Unit) {
 
+    @RequiresApi(Build.VERSION_CODES.O)
     @ExperimentalAnimationApi
     @ExperimentalUnitApi
     @Composable
@@ -69,7 +75,10 @@ class PictureOfTheDayPage(private val context: Context, private val dataState: P
         ) {
 
             datepicker { date ->
-                changeDateCallBack(date)
+
+
+
+                changeDateCallBack(Date.from(date.atStartOfDay().toInstant(ZoneOffset.MAX)))
                 dialogState.hide()
             }
         }
